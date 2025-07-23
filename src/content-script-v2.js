@@ -152,13 +152,16 @@ class LocalBrainV2 {
   async injectMemories() {
     if (!this.isInitialized || !this.handler) {
       console.warn('LocalBrain V2: Not initialized, cannot inject memories');
-      return;
+      return { success: false, error: 'Not initialized' };
     }
 
     try {
       await this.handler.handleMemoryInjection();
+      console.log('LocalBrain V2: Memory injection completed');
+      return { success: true, count: 0 };
     } catch (error) {
       console.error('LocalBrain V2: Memory injection failed:', error);
+      return { success: false, error: error.message };
     }
   }
 
@@ -209,6 +212,43 @@ function initializeLocalBrain() {
     
     // Expose to global scope for debugging and external access
     window.localBrain = localBrainInstance;
+    
+    // Set up message listener for popup communication
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      console.log('LocalBrain V2: Received message:', message);
+      
+      if (message.action === 'inject_memories' && message.version === 'v2') {
+        localBrainInstance.injectMemories()
+          .then(result => {
+            console.log('LocalBrain V2: Injection result:', result);
+            sendResponse(result);
+          })
+          .catch(error => {
+            console.error('LocalBrain V2: Injection error:', error);
+            sendResponse({ success: false, error: error.message });
+          });
+        return true; // Keep message channel open for async response
+      }
+      
+      if (message.action === 'save_conversation' && message.version === 'v2') {
+        localBrainInstance.saveCurrentConversation()
+          .then(count => {
+            sendResponse({ success: true, count });
+          })
+          .catch(error => {
+            sendResponse({ success: false, error: error.message });
+          });
+        return true;
+      }
+      
+      if (message.action === 'get_status' && message.version === 'v2') {
+        sendResponse(localBrainInstance.getStatus());
+        return false;
+      }
+      
+      // Return false for unhandled messages
+      return false;
+    });
     
   } catch (error) {
     console.error('LocalBrain V2: Failed to create instance:', error);

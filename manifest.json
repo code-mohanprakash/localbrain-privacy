@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LocalBrain - AI Memory Sync",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "Share memory across ChatGPT, Claude, Perplexity, Gemini and more. Import/export, analytics, remove duplicates. Local storage.",
   "homepage_url": "https://code-mohanprakash.github.io/localbrain-privacy/",
   
