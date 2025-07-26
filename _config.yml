@@ -1,0 +1,4 @@
+# Disable Jekyll processing
+plugins: []
+markdown: kramdown
+highlighter: rouge 
